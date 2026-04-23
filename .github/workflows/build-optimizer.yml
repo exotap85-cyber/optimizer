@@ -22,6 +22,14 @@ jobs:
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v2
 
+      - name: Verify PowerShell assemblies
+        shell: pwsh
+        run: |
+          Write-Host "Listing System.Management.Automation in GAC if present..."
+          Get-ChildItem -Path 'C:\Windows\Microsoft.NET\assembly\GAC_MSIL\System.Management.Automation' -Recurse -ErrorAction SilentlyContinue | Select-Object -Expand FullName | ForEach-Object { Write-Host $_ }
+          Write-Host "PowerShell version:"
+          $PSVersionTable
+
       - name: NuGet restore
         run: nuget restore Optimizer.sln -Verbosity detailed
 
@@ -29,7 +37,8 @@ jobs:
         run: msbuild -version
 
       - name: Build (Release | Any CPU)
-        run: msbuild Optimizer.sln /p:Configuration=Release /p:Platform="Any CPU" /m /bl:msbuild.binlog /v:minimal
+        run: |
+          msbuild Optimizer.sln /p:Configuration=Release /p:Platform="Any CPU" /m /bl:msbuild.binlog /v:diag > msbuild.txt 2>&1
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -44,3 +53,10 @@ jobs:
         with:
           name: msbuild-binlog
           path: msbuild.binlog
+
+      - name: Upload MSBuild text log (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: msbuild-textlog
+          path: msbuild.txt
