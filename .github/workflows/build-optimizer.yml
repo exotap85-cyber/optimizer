@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,10 +23,13 @@ jobs:
         uses: NuGet/setup-nuget@v2
 
       - name: NuGet restore
-        run: nuget restore Optimizer.sln
+        run: nuget restore Optimizer.sln -Verbosity detailed
+
+      - name: Show MSBuild version
+        run: msbuild -version
 
       - name: Build (Release | Any CPU)
-        run: msbuild Optimizer.sln /p:Configuration=Release /p:Platform="Any CPU" /m
+        run: msbuild Optimizer.sln /p:Configuration=Release /p:Platform="Any CPU" /m /bl:msbuild.binlog /v:detailed
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -32,3 +37,10 @@ jobs:
           name: Optimizer-Release
           path: |
             Optimizer/bin/release/**
+
+      - name: Upload MSBuild binlog (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: msbuild-binlog
+          path: msbuild.binlog
