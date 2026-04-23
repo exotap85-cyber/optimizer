@@ -29,7 +29,7 @@ jobs:
         run: msbuild -version
 
       - name: Build (Release | Any CPU)
-        run: msbuild Optimizer.sln /p:Configuration=Release /p:Platform="Any CPU" /m /bl:msbuild.binlog /v:detailed
+        run: msbuild Optimizer.sln /p:Configuration=Release /p:Platform="Any CPU" /m /bl:msbuild.binlog /v:minimal
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
