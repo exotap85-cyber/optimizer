@@ -1,0 +1,34 @@
+name: Windows Build (Optimizer)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: NuGet restore
+        run: nuget restore Optimizer.sln
+
+      - name: Build (Release | Any CPU)
+        run: msbuild Optimizer.sln /p:Configuration=Release /p:Platform="Any CPU" /m
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Optimizer-Release
+          path: |
+            Optimizer/bin/release/**
